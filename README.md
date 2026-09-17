@@ -16,8 +16,8 @@ El proyecto consiste en una solución para la gestión y distribución de inform
 
 ### Integrantes
 
-- Medina Chávez Wendolyn
-- García Vázquez Christian Jahir
+- Medina Chávez Wendolyn (LIDER)
+- García Vázquez Christian Jahir (LIDER)
 - Magallón Serna Eduardo
 - Juárez Andrade Angel
 - López Amaya Sofia Ariel
