@@ -19,7 +19,6 @@ El proyecto consiste en una solución para la gestión y distribución de inform
 - Medina Chávez Wendolyn (LIDER)
 - García Vázquez Christian Jahir (LIDER)
 - Magallón Serna Eduardo
-- Juárez Andrade Angel
 - López Amaya Sofia Ariel
 - Hernández Martínez Dana Itzel
 ---
