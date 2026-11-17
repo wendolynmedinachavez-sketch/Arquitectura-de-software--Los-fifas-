@@ -24,13 +24,12 @@ public class PolizasArq {
         
         
         
+             // Esta líneaarranca Spring Boot (conecta la Base de Datos y lee las Entidades)
+        SpringApplication.run(PolizasArq.class, args);
         
-//        // Esta líneaarranca Spring Boot (conecta la Base de Datos y lee las Entidades)
-//        SpringApplication.run(PolizasArq.class, args);
-//        
-//        System.out.println("=================================================");
-//        System.out.println("¡SISTEMA INTERMEDIARIO DE PÓLIZAS INICIADO!");
-//        System.out.println("Conectado a PostgreSQL y listo para usar Swing.");
-//        System.out.println("=================================================");
+        System.out.println("=================================================");        
+        System.out.println("¡SISTEMA INTERMEDIARIO DE PÓLIZAS INICIADO!");
+        System.out.println("Conectado a PostgreSQL y listo para usar Swing.");
+        System.out.println("=================================================");
     }
 }

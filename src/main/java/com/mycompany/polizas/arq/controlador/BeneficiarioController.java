@@ -1,18 +1,35 @@
 package com.mycompany.polizas.arq.controlador;
-
 import com.mycompany.polizas.arq.modelo.BeneficiarioPoliza;
 import com.mycompany.polizas.arq.repositorio.BeneficiarioPolizaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClient;
+import java.util.List;
 
-@Controller
+@RestController
 public class BeneficiarioController {
 
     @Autowired
     private BeneficiarioPolizaRepository beneficiarioRepository;
 
-    // TODO: Angel - Programa aquí el Alta de Beneficiario (Llave compuesta y regla del 100%)
-    
-    // TODO: Dany - Programa aquí la Consulta de Beneficiario
+    //  ver los datos de la API externa
+    @GetMapping("/beneficiarios")
+    public List<BeneficiarioPoliza> getAllFromApi() {
+        RestClient clienteRest = RestClient.create();
+        
+        List<BeneficiarioPoliza> beneficiarios = clienteRest.get()
+                .uri("http://nachintoch.mx:8080/beneficiarios")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<BeneficiarioPoliza>>() {});
+                
+        return beneficiarios;
+    }
 
+    //  base de datos local (PostgreSQL)
+    @GetMapping("/beneficiarios/db")
+    public List<BeneficiarioPoliza> getAllFromDatabase() {
+        return beneficiarioRepository.findAll();
+    }
 }
