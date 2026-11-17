@@ -1,0 +1,22 @@
+# Maven
+target/
+
+# Java
+*.class
+*.jar
+*.war
+
+# NetBeans
+nbproject/private/
+
+# VS Code
+.vscode/
+
+# IntelliJ
+.idea/
+
+# Windows
+Thumbs.db
+
+# Mac
+.DS_Store
