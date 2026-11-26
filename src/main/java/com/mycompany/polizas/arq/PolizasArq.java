@@ -1,35 +1,39 @@
 package com.mycompany.polizas.arq;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.mycompany.polizas.arq.vista.MenuPrincipal;
-import javax.swing.SwingUtilities;
+import java.awt.EventQueue;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
 
 @SpringBootApplication
 public class PolizasArq {
 
-    public static void main(String[] args) {
-//        SpringApplication.run(PolizasArq.class, args);
+    private static ConfigurableApplicationContext contextoSpring;
 
-     try {
+    public static void main(String[] args) {
+        try {
             FlatDarkLaf.setup();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        java.awt.EventQueue.invokeLater(() -> {
+        contextoSpring = new SpringApplicationBuilder(PolizasArq.class)
+                .headless(false)
+                .run(args);
+
+        System.out.println("=========================================");
+        System.out.println("SISTEMA INTERMEDIARIO DE POLIZAS INICIADO");
+        System.out.println("Conectado a PostgreSQL y Swing listo.");
+        System.out.println("=========================================");
+
+        EventQueue.invokeLater(() -> {
             new MenuPrincipal().setVisible(true);
         });
-        
-        
-        
-             // Esta líneaarranca Spring Boot (conecta la Base de Datos y lee las Entidades)
-        SpringApplication.run(PolizasArq.class, args);
-        
-        System.out.println("=================================================");        
-        System.out.println("¡SISTEMA INTERMEDIARIO DE PÓLIZAS INICIADO!");
-        System.out.println("Conectado a PostgreSQL y listo para usar Swing.");
-        System.out.println("=================================================");
+    }
+
+    public static <T> T getBean(Class<T> claseBean) {
+        return contextoSpring.getBean(claseBean);
     }
 }
