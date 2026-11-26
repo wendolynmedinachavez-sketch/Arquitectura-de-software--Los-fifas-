@@ -29,7 +29,7 @@ public class PolizasArq {
         System.out.println("=========================================");
 
         EventQueue.invokeLater(() -> {
-            new MenuPrincipal().setVisible(true);
+            getBean(MenuPrincipal.class).setVisible(true);
         });
     }
 
