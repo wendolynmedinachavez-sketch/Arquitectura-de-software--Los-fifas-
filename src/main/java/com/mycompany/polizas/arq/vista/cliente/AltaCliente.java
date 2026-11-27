@@ -1,15 +1,87 @@
 
 package com.mycompany.polizas.arq.vista.cliente;
+import com.mycompany.polizas.arq.controlador.ClienteController;
+import com.mycompany.polizas.arq.modelo.Cliente;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import javax.swing.JOptionPane;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.mycompany.polizas.arq.vista.MenuPrincipal;
 
+@Component
 public class AltaCliente extends javax.swing.JPanel {
 
+    @Autowired
+    private ClienteController clienteController;
+
    
-    public AltaCliente() {
+   public AltaCliente() {
         initComponents();
+        configurarComponentes();
+    }
+   private void configurarComponentes() {
+        btnRegis1.addActionListener(evt -> registrarCliente()); // Botón "Registrar"
+        btnRegis.addActionListener(evt -> limpiarCampos());     // Botón "Cancelar"
     }
 
+    private void registrarCliente() {
+        if (clienteController == null) {
+            JOptionPane.showMessageDialog(this, "Error: ClienteController no inyectado. Arranca desde PolizasArq.java.");
+            return;
+        }
+
+        String nombres = txtNombre.getText().trim();
+        String apePa = txtApePa.getText().trim();
+        String apeMa = txtApeMa.getText().trim();
+        String curp = txtCurp.getText().trim().toUpperCase();
+        String direccion = txtDirec.getText().trim();
+        String fechaTexto = txtFechaNa.getText().trim();
+
+        if (nombres.isEmpty() || apePa.isEmpty() || curp.isEmpty() || direccion.isEmpty() || fechaTexto.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nombre, Apellido Paterno, CURP, Dirección y Fecha de Nacimiento son obligatorios.");
+            return;
+        }
+
+        if (curp.length() != 18) {
+            JOptionPane.showMessageDialog(this, "La CURP debe tener exactamente 18 caracteres.");
+            return;
+        }
+
+        LocalDate fechaNacimiento;
+        try {
+            fechaNacimiento = LocalDate.parse(fechaTexto);
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this, "La fecha debe tener formato AAAA-MM-DD (ejemplo: 1998-05-14).");
+            return;
+        }
+
+        try {
+            Cliente cliente = new Cliente();
+            cliente.setNombres(nombres);
+            cliente.setPrimerApellido(apePa);
+            cliente.setSegundoApellido(apeMa);
+            cliente.setCurp(curp);
+            cliente.setDireccion(direccion);
+            cliente.setFechaNacimiento(fechaNacimiento);
+
+            clienteController.registrarCliente(cliente);
+            JOptionPane.showMessageDialog(this, "Cliente registrado con éxito.");
+            limpiarCampos();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al registrar cliente: " + ex.getMessage());
+        }
+    }
+
+    private void limpiarCampos() {
+        txtNombre.setText("");
+        txtApePa.setText("");
+        txtApeMa.setText("");
+        txtCurp.setText("");
+        txtDirec.setText("");
+        txtFechaNa.setText("");
+    }
    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents

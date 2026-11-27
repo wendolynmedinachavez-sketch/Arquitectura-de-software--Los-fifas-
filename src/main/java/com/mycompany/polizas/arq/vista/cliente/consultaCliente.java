@@ -1,15 +1,81 @@
 
 package com.mycompany.polizas.arq.vista.cliente;
+import com.mycompany.polizas.arq.controlador.ClienteController;
+import com.mycompany.polizas.arq.modelo.Cliente;
+import java.util.Optional;
+import javax.swing.JOptionPane;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-
+@Component
 public class consultaCliente extends javax.swing.JPanel {
+
+    @Autowired
+    private ClienteController clienteController;
 
     
     public consultaCliente() {
         initComponents();
+        configurarComponentes();
     }
 
-  
+    private void configurarComponentes() {
+        txtNombre.setEditable(false);
+        txtApePa.setEditable(false);
+        txtApeMa.setEditable(false);
+        txtCurp.setEditable(false);
+        txtDirec.setEditable(false);
+        txtFechaNa.setEditable(false);
+
+        btnBuscar.addActionListener(evt -> buscarCliente());
+    }
+
+    private void buscarCliente() {
+        if (clienteController == null) {
+            JOptionPane.showMessageDialog(this, "Error: ClienteController no inyectado. Arranca desde PolizasArq.java.");
+            return;
+        }
+
+        String curp = txtDato.getText().trim().toUpperCase();
+        if (curp.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Ingresa la CURP del cliente a buscar.");
+            return;
+        }
+
+        try {
+            Cliente encontrado;
+            Optional<Cliente> opt = clienteController.buscarClientePorCurpDb(curp);
+            if (opt.isPresent()) {
+                encontrado = opt.get();
+            } else {
+                encontrado = clienteController.getClienteFromApi(curp);
+            }
+
+            if (encontrado != null) {
+                txtNombre.setText(encontrado.getNombres() != null ? encontrado.getNombres() : "");
+                txtApePa.setText(encontrado.getPrimerApellido() != null ? encontrado.getPrimerApellido() : "");
+                txtApeMa.setText(encontrado.getSegundoApellido() != null ? encontrado.getSegundoApellido() : "");
+                txtCurp.setText(encontrado.getCurp() != null ? encontrado.getCurp() : "");
+                txtDirec.setText(encontrado.getDireccion() != null ? encontrado.getDireccion() : "");
+                txtFechaNa.setText(encontrado.getFechaNacimiento() != null ? encontrado.getFechaNacimiento().toString() : "");
+            } else {
+                limpiarCampos();
+                JOptionPane.showMessageDialog(this, "No se encontró ningún cliente con la CURP: " + curp);
+            }
+        } catch (Exception ex) {
+            limpiarCampos();
+            JOptionPane.showMessageDialog(this, "Error al consultar cliente: " + ex.getMessage());
+        }
+    }
+
+    private void limpiarCampos() {
+        txtNombre.setText("");
+        txtApePa.setText("");
+        txtApeMa.setText("");
+        txtCurp.setText("");
+        txtDirec.setText("");
+        txtFechaNa.setText("");
+    }
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {

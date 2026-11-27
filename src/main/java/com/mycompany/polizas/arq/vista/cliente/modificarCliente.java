@@ -1,14 +1,123 @@
-
 package com.mycompany.polizas.arq.vista.cliente;
+import com.mycompany.polizas.arq.controlador.ClienteController;
+import com.mycompany.polizas.arq.modelo.Cliente;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.Optional;
+import javax.swing.JOptionPane;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-
+@Component
 public class modificarCliente extends javax.swing.JPanel {
 
+    @Autowired
+    private ClienteController clienteController;
+
+    private Cliente clienteActual;
    
-    public modificarCliente() {
+  public modificarCliente() {
         initComponents();
+        configurarComponentes();
+    }
+  private void configurarComponentes() {
+        // La CURP es llave primaria, se bloquea para evitar cambios
+        txtCurp.setEditable(false);
+
+        btnBuscar.addActionListener(evt -> buscarCliente());
+        btnActua.addActionListener(evt -> actualizarCliente());
     }
 
+    private void buscarCliente() {
+        if (clienteController == null) {
+            JOptionPane.showMessageDialog(this, "Error: ClienteController no inyectado. Arranca desde PolizasArq.java.");
+            return;
+        }
+
+        String curp = txtDato.getText().trim().toUpperCase();
+        if (curp.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Ingresa la CURP del cliente a buscar.");
+            return;
+        }
+
+        try {
+            Optional<Cliente> opt = clienteController.buscarClientePorCurpDb(curp);
+            if (opt.isPresent()) {
+                clienteActual = opt.get();
+            } else {
+                clienteActual = clienteController.getClienteFromApi(curp);
+            }
+
+            if (clienteActual != null) {
+                txtNombre.setText(clienteActual.getNombres() != null ? clienteActual.getNombres() : "");
+                txtApePa.setText(clienteActual.getPrimerApellido() != null ? clienteActual.getPrimerApellido() : "");
+                txtApeMa.setText(clienteActual.getSegundoApellido() != null ? clienteActual.getSegundoApellido() : "");
+                txtCurp.setText(clienteActual.getCurp() != null ? clienteActual.getCurp() : "");
+                txtDirec.setText(clienteActual.getDireccion() != null ? clienteActual.getDireccion() : "");
+                txtFechaNa.setText(clienteActual.getFechaNacimiento() != null ? clienteActual.getFechaNacimiento().toString() : "");
+            } else {
+                limpiarCampos();
+                JOptionPane.showMessageDialog(this, "No se encontró ningún cliente con la CURP: " + curp);
+            }
+        } catch (Exception ex) {
+            limpiarCampos();
+            JOptionPane.showMessageDialog(this, "Error al buscar cliente: " + ex.getMessage());
+        }
+    }
+
+    private void actualizarCliente() {
+        if (clienteController == null) {
+            JOptionPane.showMessageDialog(this, "Error: ClienteController no inyectado.");
+            return;
+        }
+
+        if (clienteActual == null) {
+            JOptionPane.showMessageDialog(this, "Primero busca un cliente por su CURP.");
+            return;
+        }
+
+        String nombres = txtNombre.getText().trim();
+        String apePa = txtApePa.getText().trim();
+        String apeMa = txtApeMa.getText().trim();
+        String direccion = txtDirec.getText().trim();
+        String fechaTexto = txtFechaNa.getText().trim();
+
+        if (nombres.isEmpty() || apePa.isEmpty() || direccion.isEmpty() || fechaTexto.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nombre, Apellido Paterno, Dirección y Fecha de Nacimiento son obligatorios.");
+            return;
+        }
+
+        LocalDate fechaNacimiento;
+        try {
+            fechaNacimiento = LocalDate.parse(fechaTexto);
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this, "La fecha debe tener formato AAAA-MM-DD (ejemplo: 1995-08-20).");
+            return;
+        }
+
+        try {
+            clienteActual.setNombres(nombres);
+            clienteActual.setPrimerApellido(apePa);
+            clienteActual.setSegundoApellido(apeMa);
+            clienteActual.setDireccion(direccion);
+            clienteActual.setFechaNacimiento(fechaNacimiento);
+
+            clienteController.modificarCliente(clienteActual);
+            JOptionPane.showMessageDialog(this, "Cliente actualizado con éxito.");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al actualizar el cliente: " + ex.getMessage());
+        }
+    }
+
+    private void limpiarCampos() {
+        clienteActual = null;
+        txtNombre.setText("");
+        txtApePa.setText("");
+        txtApeMa.setText("");
+        txtCurp.setText("");
+        txtDirec.setText("");
+        txtFechaNa.setText("");
+    }
     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
