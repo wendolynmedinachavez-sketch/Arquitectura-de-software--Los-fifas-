@@ -27,10 +27,8 @@ Antes de instalar y ejecutar el proyecto, asegúrate de contar con:
 ## Instalación y configuración
 
 ### 1. Clonar el repositorio
-```bash
-git clone [https://github.com/wendolynmedinachavez-sketch/Arquitectura-de-software--Los-fifas-.git](https://github.com/wendolynmedinachavez-sketch/Arquitectura-de-software--Los-fifas-.git)
+git clone https://github.com/wendolynmedinachavez-sketch/Arquitectura-de-software--Los-fifas-.git
 cd Arquitectura-de-software--Los-fifas-
-```
 
 ### 2. Configurar la base de datos PostgreSQL
 1. Crea una base de datos vacía en PostgreSQL.
