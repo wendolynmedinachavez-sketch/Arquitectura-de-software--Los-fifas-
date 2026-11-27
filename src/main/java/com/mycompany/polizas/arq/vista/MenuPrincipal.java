@@ -1,6 +1,8 @@
 
 package com.mycompany.polizas.arq.vista;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import com.mycompany.polizas.arq.vista.cliente.AltaCliente;
 import com.mycompany.polizas.arq.vista.cliente.consultaCliente;
 import com.mycompany.polizas.arq.vista.cliente.modificarCliente;
@@ -13,14 +15,39 @@ import com.mycompany.polizas.arq.vista.poliza.modificarPoliza;
 import com.mycompany.polizas.arq.vista.beneficiario.altaBeneficiario;
 import com.mycompany.polizas.arq.vista.beneficiario.consultaBeneficiario;
 
-
+@Component
 public class MenuPrincipal extends javax.swing.JFrame {
 
-  
-    public MenuPrincipal() {
-        initComponents();
-        
+    @Autowired
+    private altaBeneficiario panelAltaBeneficiario;
 
+    @Autowired
+    private consultaBeneficiario panelConsultaBeneficiario;
+
+    @Autowired
+    private modificarPoliza panelModificarPoliza;
+    
+    @Autowired
+    private modificarCliente panelModificarCliente;
+    @Autowired
+    private AltaCliente panelAltaCliente;
+
+    @Autowired
+    private consultaCliente panelConsultaCliente;
+    
+    @Autowired
+    private altaPoliza panelAltaPoliza;
+
+    @Autowired
+    private consultaPoliza panelConsultaPoliza;
+
+    @Autowired
+    private eliminacionPoliza panelEliminacionPoliza;
+    
+  
+   public MenuPrincipal() {
+        initComponents();
+        setLocationRelativeTo(null);
     }
 
     private void cambiarPanel(javax.swing.JPanel nuevoPanel) {
@@ -213,39 +240,39 @@ public class MenuPrincipal extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void miAltaPoliActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miAltaPoliActionPerformed
-        cambiarPanel(new altaPoliza());
+        cambiarPanel(panelAltaPoliza != null ? panelAltaPoliza : new altaPoliza());
     }//GEN-LAST:event_miAltaPoliActionPerformed
 
     private void miAltaClieActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miAltaClieActionPerformed
-        cambiarPanel(new AltaCliente());
+        cambiarPanel(panelAltaCliente != null ? panelAltaCliente : new AltaCliente());
     }//GEN-LAST:event_miAltaClieActionPerformed
 
     private void miConsultaClieActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miConsultaClieActionPerformed
-        cambiarPanel(new consultaCliente());
+      cambiarPanel(panelConsultaCliente != null ? panelConsultaCliente : new consultaCliente());
     }//GEN-LAST:event_miConsultaClieActionPerformed
 
     private void miModClieActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miModClieActionPerformed
-        cambiarPanel(new modificarCliente());
+        cambiarPanel(panelModificarCliente != null ? panelModificarCliente : new modificarCliente());
     }//GEN-LAST:event_miModClieActionPerformed
 
     private void miConsulPoliActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miConsulPoliActionPerformed
-        cambiarPanel(new consultaPoliza());
+     cambiarPanel(panelConsultaPoliza != null ? panelConsultaPoliza : new consultaPoliza());
     }//GEN-LAST:event_miConsulPoliActionPerformed
 
     private void miElimPoliActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miElimPoliActionPerformed
-        cambiarPanel(new eliminacionPoliza());
+       cambiarPanel(panelEliminacionPoliza != null ? panelEliminacionPoliza : new eliminacionPoliza());
     }//GEN-LAST:event_miElimPoliActionPerformed
 
     private void miModPoliActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miModPoliActionPerformed
-        cambiarPanel(new modificarPoliza());
+        cambiarPanel(panelModificarPoliza != null ? panelModificarPoliza : new modificarPoliza());
     }//GEN-LAST:event_miModPoliActionPerformed
 
     private void miAltaBeneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miAltaBeneActionPerformed
-        cambiarPanel(new altaBeneficiario());
+        cambiarPanel(panelAltaBeneficiario != null ? panelAltaBeneficiario : new altaBeneficiario());
     }//GEN-LAST:event_miAltaBeneActionPerformed
 
     private void miConsulBeneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miConsulBeneActionPerformed
-        cambiarPanel(new consultaBeneficiario());
+        cambiarPanel(panelConsultaBeneficiario != null ? panelConsultaBeneficiario : new consultaBeneficiario());
     }//GEN-LAST:event_miConsulBeneActionPerformed
 
     private void mInicioMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mInicioMouseClicked
