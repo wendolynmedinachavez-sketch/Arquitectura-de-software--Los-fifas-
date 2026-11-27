@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface BeneficiarioPolizaRepository extends JpaRepository<BeneficiarioPoliza, BeneficiarioPolizaId> {
-    // Aquí usamos la clase de Llave Compuesta que creamos antes
+public interface BeneficiarioPolizaRepository
+        extends JpaRepository<BeneficiarioPoliza, BeneficiarioPolizaId> {
 }
