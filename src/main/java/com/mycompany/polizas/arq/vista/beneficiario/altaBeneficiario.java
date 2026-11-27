@@ -1,11 +1,39 @@
 
 package com.mycompany.polizas.arq.vista.beneficiario;
+import com.mycompany.polizas.arq.controlador.BeneficiarioController;
+import com.mycompany.polizas.arq.controlador.PolizaController;
+import com.mycompany.polizas.arq.modelo.BeneficiarioPoliza;
+import com.mycompany.polizas.arq.modelo.BeneficiarioPolizaId;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.UUID;
+import javax.swing.JOptionPane;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class altaBeneficiario extends javax.swing.JPanel {
+
+    @Autowired
+    private BeneficiarioController beneficiarioController;
+
+    @Autowired
+    private PolizaController polizaController;
+
 
    
     public altaBeneficiario() {
         initComponents();
+        btnCancelar.addActionListener(evt -> limpiarCampos());
+    }
+
+    private void limpiarCampos() {
+        txtNombre.setText("");
+        txtApePa.setText("");
+        txtApeMa.setText("");
+        txtClavePoliza.setText("");
+        txtPorcePoli.setText("");
+        txtFechaNa.setText("");
     }
 
 
@@ -53,6 +81,11 @@ public class altaBeneficiario extends javax.swing.JPanel {
         btnCancelar.setText("Cancelar");
 
         btnRegis.setText("Registrar");
+        btnRegis.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegisActionPerformed(evt);
+            }
+        });
 
         lblPorc.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         lblPorc.setText("%");
@@ -136,6 +169,49 @@ public class altaBeneficiario extends javax.swing.JPanel {
             .addComponent(panFondoAltaBene, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnRegisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisActionPerformed
+        String nombres = txtNombre.getText().trim();
+        String primerApellido = txtApePa.getText().trim();
+        String segundoApellido = txtApeMa.getText().trim();
+        String claveTexto = txtClavePoliza.getText().trim();
+        String porcentajeTexto = txtPorcePoli.getText().trim();
+        String fechaTexto = txtFechaNa.getText().trim();
+
+        if (nombres.isEmpty() || primerApellido.isEmpty()
+                || claveTexto.isEmpty() || porcentajeTexto.isEmpty() || fechaTexto.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Completa los campos obligatorios.");
+            return;
+        }
+
+        try {
+            UUID clavePoliza = UUID.fromString(claveTexto);
+            int porcentaje = Integer.parseInt(porcentajeTexto);
+            LocalDate fechaNacimiento = LocalDate.parse(fechaTexto);
+
+            boolean existeLocal = polizaController.buscarPolizaPorClave(clavePoliza).isPresent();
+            boolean existeRemoto = !existeLocal
+                    && polizaController.getPolizaFromApi(clavePoliza.toString()) != null;
+
+            if (!existeLocal && !existeRemoto) {
+                JOptionPane.showMessageDialog(this, "La póliza no está registrada.");
+                return;
+            }
+
+            BeneficiarioPolizaId id = new BeneficiarioPolizaId(
+                    clavePoliza, nombres, primerApellido, segundoApellido, fechaNacimiento);
+            beneficiarioController.registrarBeneficiario(new BeneficiarioPoliza(id, porcentaje));
+
+            JOptionPane.showMessageDialog(this, "Beneficiario registrado con éxito.");
+            limpiarCampos();
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this, "Usa formato de fecha AAAA-MM-DD.");
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Sistema Dueño no disponible: " + ex.getMessage());
+        }
+    }//GEN-LAST:event_btnRegisActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

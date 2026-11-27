@@ -1,15 +1,55 @@
-
 package com.mycompany.polizas.arq.vista.beneficiario ;
 
+import com.mycompany.polizas.arq.controlador.BeneficiarioController;
+import com.mycompany.polizas.arq.modelo.BeneficiarioPoliza;
+import com.mycompany.polizas.arq.modelo.BeneficiarioPolizaId;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+import javax.swing.JOptionPane;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-
+@Component
 public class consultaBeneficiario extends javax.swing.JPanel {
+
+    @Autowired
+    private BeneficiarioController beneficiarioController;
 
     /**
      * Creates new form consultaPoliza
      */
-    public consultaBeneficiario() {
+   public consultaBeneficiario() {
         initComponents();
+        configurarCamposSoloLectura();
+    }
+
+    private void configurarCamposSoloLectura() {
+        txtNombre.setEditable(false);
+        txtApePa.setEditable(false);
+        txtApeMa.setEditable(false);
+        txtClavePoliza1.setEditable(false);
+        txtPorcePoli.setEditable(false);
+        txtFechaNa.setEditable(false);
+    }
+
+    private void limpiarResultado() {
+        txtNombre.setText("");
+        txtApePa.setText("");
+        txtApeMa.setText("");
+        txtClavePoliza1.setText("");
+        txtPorcePoli.setText("");
+        txtFechaNa.setText("");
+    }
+
+    private void mostrarBeneficiario(BeneficiarioPoliza b) {
+        BeneficiarioPolizaId id = b.getId();
+        txtNombre.setText(id.getNombres());
+        txtApePa.setText(id.getPrimerApellido());
+        txtApeMa.setText(id.getSegundoApellido() != null ? id.getSegundoApellido() : "");
+        txtClavePoliza1.setText(id.getClave().toString());
+        txtPorcePoli.setText(String.valueOf(b.getPorcentaje()));
+        txtFechaNa.setText(id.getFechaNacimiento().toString());
     }
 
     /**
@@ -145,8 +185,87 @@ public class consultaBeneficiario extends javax.swing.JPanel {
         add(txtClavePoliza, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 40, 430, 30));
 
         btnBuscar.setText("Buscar");
+        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuscarActionPerformed(evt);
+            }
+        });
         add(btnBuscar, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 80, 130, 40));
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
+       String claveTexto = txtClavePoliza.getText().trim();
+        if (claveTexto.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Ingresa la clave (UUID) de la póliza.");
+            return;
+        }
+
+        UUID clavePoliza;
+        try {
+            clavePoliza = UUID.fromString(claveTexto);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "La clave de póliza no tiene formato UUID válido.");
+            return;
+        }
+
+        try {
+            List<BeneficiarioPoliza> lista = beneficiarioController.buscarBeneficiariosPorPoliza(clavePoliza);
+
+            if (!lista.isEmpty()) {
+                BeneficiarioPoliza elegido = lista.get(0);
+                if (lista.size() > 1) {
+                    String[] opciones = lista.stream()
+                            .map(b -> b.getId().getNombres() + " " + b.getId().getPrimerApellido()
+                                    + " (" + b.getPorcentaje() + "%)")
+                            .toArray(String[]::new);
+                    int sel = JOptionPane.showOptionDialog(this,
+                            "Esta póliza tiene varios beneficiarios. Selecciona cuál deseas ver:",
+                            "Seleccionar beneficiario",
+                            JOptionPane.DEFAULT_OPTION,
+                            JOptionPane.QUESTION_MESSAGE,
+                            null, opciones, opciones[0]);
+                    if (sel >= 0) {
+                        elegido = lista.get(sel);
+                    }
+                }
+                mostrarBeneficiario(elegido);
+                return;
+            }
+
+            // Si no está en PostgreSQL local, consulta al Sistema Dueño (nachintoch.mx)
+            int resp = JOptionPane.showConfirmDialog(this,
+                    "No se encontró en la base local. ¿Deseas buscarlo en el Sistema Dueño (nachintoch.mx)?",
+                    "Consultar Sistema Dueño", JOptionPane.YES_NO_OPTION);
+            if (resp != JOptionPane.YES_OPTION) {
+                limpiarResultado();
+                return;
+            }
+
+            String nombres = JOptionPane.showInputDialog(this, "Nombre(s) del beneficiario:");
+            String apePa = JOptionPane.showInputDialog(this, "Primer apellido:");
+            String apeMa = JOptionPane.showInputDialog(this, "Segundo apellido (deja vacío si no tiene):");
+            String fecha = JOptionPane.showInputDialog(this, "Fecha de nacimiento (AAAA-MM-DD):");
+
+            if (nombres == null || apePa == null || fecha == null
+                    || nombres.isBlank() || apePa.isBlank() || fecha.isBlank()) {
+                return;
+            }
+
+            BeneficiarioPoliza remoto = beneficiarioController.consultarEnApi(
+                    fecha.trim(), clavePoliza.toString(), nombres.trim(), apePa.trim(),
+                    apeMa != null ? apeMa.trim() : "");
+
+            if (remoto != null) {
+                mostrarBeneficiario(remoto);
+            } else {
+                limpiarResultado();
+                JOptionPane.showMessageDialog(this, "No existe ese beneficiario en el Sistema Dueño.");
+            }
+        } catch (Exception ex) {
+            limpiarResultado();
+            JOptionPane.showMessageDialog(this, "Error al consultar beneficiario: " + ex.getMessage());
+        }
+    }//GEN-LAST:event_btnBuscarActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
