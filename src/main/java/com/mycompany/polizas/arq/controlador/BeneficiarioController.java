@@ -1,35 +1,55 @@
 package com.mycompany.polizas.arq.controlador;
+
 import com.mycompany.polizas.arq.modelo.BeneficiarioPoliza;
-import com.mycompany.polizas.arq.repositorio.BeneficiarioPolizaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClient;
+import com.mycompany.polizas.arq.modelo.BeneficiarioPolizaId;
+import com.mycompany.polizas.arq.servicios.BeneficiarioService;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class BeneficiarioController {
 
     @Autowired
-    private BeneficiarioPolizaRepository beneficiarioRepository;
+    private BeneficiarioService beneficiarioService;
 
-    //  ver los datos de la API externa
-    @GetMapping("/beneficiarios")
-    public List<BeneficiarioPoliza> getAllFromApi() {
-        RestClient clienteRest = RestClient.create();
-        
-        List<BeneficiarioPoliza> beneficiarios = clienteRest.get()
-                .uri("http://nachintoch.mx:8080/beneficiarios")
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<BeneficiarioPoliza>>() {});
-                
-        return beneficiarios;
-    }
-
-    //  base de datos local (PostgreSQL)
     @GetMapping("/beneficiarios/db")
     public List<BeneficiarioPoliza> getAllFromDatabase() {
-        return beneficiarioRepository.findAll();
+        return beneficiarioService.obtenerTodosDesdeDb();
+    }
+
+    @GetMapping("/beneficiario/{fecha}/{clave}/{nombres}/{primer}/{segundo}")
+    public BeneficiarioPoliza consultarEnApi(
+            @PathVariable String fecha,
+            @PathVariable String clave,
+            @PathVariable String nombres,
+            @PathVariable String primer,
+            @PathVariable String segundo) {
+        return beneficiarioService.consultarEnApi(
+                LocalDate.parse(fecha),
+                UUID.fromString(clave),
+                nombres,
+                primer,
+                segundo);
+    }
+
+    // Jahir - Alta de Beneficiario (consistente con Sistema Dueño y BD local)
+    public BeneficiarioPoliza registrarBeneficiario(BeneficiarioPoliza beneficiario) {
+        return beneficiarioService.registrarBeneficiario(beneficiario);
+    }
+
+    // Jahir - Consulta de Beneficiarios por clave de póliza (BD local)
+    public List<BeneficiarioPoliza> buscarBeneficiariosPorPoliza(UUID clavePoliza) {
+        return beneficiarioService.obtenerPorClavePolizaDb(clavePoliza);
+    }
+
+    // Jahir - Consulta puntual de Beneficiario por llave compuesta (BD local)
+    public Optional<BeneficiarioPoliza> buscarBeneficiarioPorId(BeneficiarioPolizaId id) {
+        return beneficiarioService.buscarPorIdDb(id);
     }
 }
