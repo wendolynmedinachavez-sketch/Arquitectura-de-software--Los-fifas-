@@ -1,7 +1,11 @@
 package com.mycompany.polizas.arq.modelo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(name = "cliente")
@@ -26,19 +30,68 @@ public class Cliente {
     @Column(name = "fecha_nacimiento", nullable = false)
     private LocalDate fechaNacimiento;
 
-    public Cliente() {}
+    public Cliente() {
+    }
 
-    // Getters y Setters
-    public String getCurp() { return curp; }
-    public void setCurp(String curp) { this.curp = curp; }
-    public String getNombres() { return nombres; }
-    public void setNombres(String nombres) { this.nombres = nombres; }
-    public String getPrimerApellido() { return primerApellido; }
-    public void setPrimerApellido(String primerApellido) { this.primerApellido = primerApellido; }
-    public String getSegundoApellido() { return segundoApellido; }
-    public void setSegundoApellido(String segundoApellido) { this.segundoApellido = segundoApellido; }
-    public String getDireccion() { return direccion; }
-    public void setDireccion(String direccion) { this.direccion = direccion; }
-    public LocalDate getFechaNacimiento() { return fechaNacimiento; }
-    public void setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
+    public String getCurp() {
+        return curp;
+    }
+
+    public void setCurp(String curp) {
+        this.curp = curp;
+    }
+
+    public String getNombres() {
+        return nombres;
+    }
+
+    public void setNombres(String nombres) {
+        this.nombres = nombres;
+    }
+
+    public String getPrimerApellido() {
+        return primerApellido;
+    }
+
+    public void setPrimerApellido(String primerApellido) {
+        this.primerApellido = primerApellido;
+    }
+
+    public String getSegundoApellido() {
+        return segundoApellido;
+    }
+
+    public void setSegundoApellido(String segundoApellido) {
+        this.segundoApellido = segundoApellido;
+    }
+
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
+    }
+
+    public LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Cliente)) {
+            return false;
+        }
+        Cliente otro = (Cliente) obj;
+        return curp != null && curp.equalsIgnoreCase(otro.curp);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(curp);
+    }
 }
