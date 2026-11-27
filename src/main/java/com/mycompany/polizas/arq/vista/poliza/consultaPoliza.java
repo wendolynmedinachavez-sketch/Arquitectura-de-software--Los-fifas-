@@ -1,15 +1,121 @@
 
 package com.mycompany.polizas.arq.vista.poliza;
+import com.mycompany.polizas.arq.controlador.PolizaController;
+import com.mycompany.polizas.arq.modelo.Poliza;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-
+@Component
 public class consultaPoliza extends javax.swing.JPanel {
 
+    @Autowired
+    private PolizaController polizaController;
+
+    private DefaultTableModel modeloTabla;
+
    
-    public consultaPoliza() {
+   public consultaPoliza() {
         initComponents();
+        configurarComponentes();
     }
 
-    
+    private void configurarComponentes() {
+        cbBuscar.setModel(new DefaultComboBoxModel<>(new String[]{
+            "Todas (BD Local)",
+            "Clave Póliza (UUID)",
+            "CURP Cliente"
+        }));
+
+        modeloTabla = new DefaultTableModel(
+                new Object[]{"Clave", "CURP Cliente", "Tipo", "Monto", "Descripción"}, 0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        jtConsulPoli.setModel(modeloTabla);
+
+        btnBuscar.addActionListener(evt -> buscarPolizas());
+    }
+
+    private void buscarPolizas() {
+        if (polizaController == null) {
+            JOptionPane.showMessageDialog(this, "Error: PolizaController no inyectado. Arranca desde PolizasArq.java.");
+            return;
+        }
+
+        int opcion = cbBuscar.getSelectedIndex();
+        String dato = txtDato.getText().trim();
+        List<Poliza> resultado = new ArrayList<>();
+
+        try {
+            if (opcion == 0) {
+                resultado = polizaController.getAllFromDatabase();
+            } else if (opcion == 1) {
+                if (dato.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Ingresa la clave (UUID) de la póliza.");
+                    return;
+                }
+                UUID clave;
+                try {
+                    clave = UUID.fromString(dato);
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(this, "La clave no tiene formato UUID válido.");
+                    return;
+                }
+                Optional<Poliza> opt = polizaController.buscarPolizaPorClave(clave);
+                if (opt.isPresent()) {
+                    resultado.add(opt.get());
+                } else {
+                    Poliza remota = polizaController.getPolizaFromApi(clave.toString());
+                    if (remota != null) {
+                        resultado.add(remota);
+                    }
+                }
+            } else if (opcion == 2) {
+                if (dato.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Ingresa la CURP del cliente.");
+                    return;
+                }
+                List<Poliza> todas = polizaController.getAllFromDatabase();
+                for (Poliza p : todas) {
+                    if (p.getCliente() != null && dato.equalsIgnoreCase(p.getCliente().getCurp())) {
+                        resultado.add(p);
+                    }
+                }
+            }
+
+            cargarTabla(resultado);
+
+            if (resultado.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No se encontraron pólizas con ese criterio.");
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al consultar pólizas: " + ex.getMessage());
+        }
+    }
+
+    private void cargarTabla(List<Poliza> lista) {
+        modeloTabla.setRowCount(0);
+        for (Poliza p : lista) {
+            String curp = (p.getCliente() != null) ? p.getCliente().getCurp() : "";
+            modeloTabla.addRow(new Object[]{
+                p.getClave(),
+                curp,
+                p.getTipo(),
+                p.getMonto(),
+                p.getDescripcion()
+            });
+        }
+    }
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {

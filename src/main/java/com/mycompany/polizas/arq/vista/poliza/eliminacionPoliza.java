@@ -1,13 +1,154 @@
 
 package com.mycompany.polizas.arq.vista.poliza;
+import com.mycompany.polizas.arq.controlador.PolizaController;
+import com.mycompany.polizas.arq.modelo.Poliza;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-
+@Component
 public class eliminacionPoliza extends javax.swing.JPanel {
+
+    @Autowired
+    private PolizaController polizaController;
+
+    private List<Poliza> polizasMostradas = new ArrayList<>();
+    private DefaultTableModel modeloTabla;
 
     public eliminacionPoliza() {
         initComponents();
+        configurarComponentes();
+    }
+    private void configurarComponentes() {
+        cbBuscar.setModel(new DefaultComboBoxModel<>(new String[]{
+            "Todas (BD Local)",
+            "Clave Póliza (UUID)",
+            "CURP Cliente"
+        }));
+
+        modeloTabla = new DefaultTableModel(
+                new Object[]{"Clave", "CURP Cliente", "Tipo", "Monto", "Descripción"}, 0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        jtConsulPoli.setModel(modeloTabla);
+
+        btnBuscar.addActionListener(evt -> buscarPolizas());
+        btnEliminar.addActionListener(evt -> eliminarPolizaSeleccionada());
     }
 
+    private void buscarPolizas() {
+        if (polizaController == null) {
+            JOptionPane.showMessageDialog(this, "Error: PolizaController no inyectado. Arranca desde PolizasArq.java.");
+            return;
+        }
+
+        int opcion = cbBuscar.getSelectedIndex();
+        String dato = txtDato.getText().trim();
+        polizasMostradas = new ArrayList<>();
+
+        try {
+            if (opcion == 0) {
+                polizasMostradas = polizaController.getAllFromDatabase();
+            } else if (opcion == 1) {
+                if (dato.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Ingresa la clave (UUID) de la póliza.");
+                    return;
+                }
+                UUID clave;
+                try {
+                    clave = UUID.fromString(dato);
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(this, "La clave no tiene formato UUID válido.");
+                    return;
+                }
+                Optional<Poliza> opt = polizaController.buscarPolizaPorClave(clave);
+                if (opt.isPresent()) {
+                    polizasMostradas.add(opt.get());
+                } else {
+                    Poliza remota = polizaController.getPolizaFromApi(clave.toString());
+                    if (remota != null) {
+                        polizasMostradas.add(remota);
+                    }
+                }
+            } else if (opcion == 2) {
+                if (dato.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Ingresa la CURP del cliente.");
+                    return;
+                }
+                List<Poliza> todas = polizaController.getAllFromDatabase();
+                for (Poliza p : todas) {
+                    if (p.getCliente() != null && dato.equalsIgnoreCase(p.getCliente().getCurp())) {
+                        polizasMostradas.add(p);
+                    }
+                }
+            }
+
+            cargarTabla(polizasMostradas);
+
+            if (polizasMostradas.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No se encontraron pólizas con ese criterio.");
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al buscar pólizas: " + ex.getMessage());
+        }
+    }
+
+    private void cargarTabla(List<Poliza> lista) {
+        modeloTabla.setRowCount(0);
+        for (Poliza p : lista) {
+            String curp = (p.getCliente() != null) ? p.getCliente().getCurp() : "";
+            modeloTabla.addRow(new Object[]{
+                p.getClave(),
+                curp,
+                p.getTipo(),
+                p.getMonto(),
+                p.getDescripcion()
+            });
+        }
+    }
+
+    private void eliminarPolizaSeleccionada() {
+        if (polizaController == null) {
+            JOptionPane.showMessageDialog(this, "Error: PolizaController no inyectado.");
+            return;
+        }
+
+        int fila = jtConsulPoli.getSelectedRow();
+        if (fila < 0 || fila >= polizasMostradas.size()) {
+            JOptionPane.showMessageDialog(this, "Selecciona una póliza de la tabla para eliminar.");
+            return;
+        }
+
+        Poliza poliza = polizasMostradas.get(fila);
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "¿Seguro que deseas eliminar la póliza " + poliza.getClave() + "?",
+                "Confirmar eliminación",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            polizaController.eliminarPoliza(poliza.getClave());
+            JOptionPane.showMessageDialog(this, "Póliza eliminada con éxito.");
+            buscarPolizas();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al eliminar la póliza: " + ex.getMessage());
+        }
+    }
   
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents

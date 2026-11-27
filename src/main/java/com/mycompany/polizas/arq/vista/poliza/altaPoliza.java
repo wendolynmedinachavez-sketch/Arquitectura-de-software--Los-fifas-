@@ -1,14 +1,118 @@
 
 package com.mycompany.polizas.arq.vista.poliza;
+import com.mycompany.polizas.arq.controlador.ClienteController;
+import com.mycompany.polizas.arq.controlador.PolizaController;
+import com.mycompany.polizas.arq.modelo.Cliente;
+import com.mycompany.polizas.arq.modelo.Poliza;
+import java.math.BigDecimal;
+import java.util.Optional;
+import java.util.UUID;
+import javax.swing.JOptionPane;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+
+@Component
 public class altaPoliza extends javax.swing.JPanel {
+
+    @Autowired
+    private PolizaController polizaController;
+
+    @Autowired
+    private ClienteController clienteController;
 
    
     public altaPoliza() {
         initComponents();
+        configurarComponentes();
     }
 
-    
+    private void configurarComponentes() {
+        btnRegis1.addActionListener(evt -> registrarPoliza()); // Botón "Registrar"
+        btnRegis.addActionListener(evt -> limpiarCampos());    // Botón "Cancelar"
+    }
+
+    private void registrarPoliza() {
+        if (polizaController == null || clienteController == null) {
+            JOptionPane.showMessageDialog(this, "Error: Controladores no inyectados. Arranca desde PolizasArq.java.");
+            return;
+        }
+
+        String claveTexto = txtClave.getText().trim();
+        Integer tipo = cbTipo.getSelectedIndex(); // 0=Auto, 1=Vida, 2=Medico
+        String montoTexto = txtMonto.getText().trim();
+        String descripcion = txtDescripcion.getText().trim();
+        String curp = txtDirec.getText().trim().toUpperCase();
+
+        if (montoTexto.isEmpty() || descripcion.isEmpty() || curp.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Monto, Descripción y CURP Cliente son obligatorios.");
+            return;
+        }
+
+        BigDecimal monto;
+        try {
+            monto = new BigDecimal(montoTexto);
+            if (monto.compareTo(BigDecimal.ZERO) <= 0) {
+                JOptionPane.showMessageDialog(this, "El monto debe ser mayor a 0.");
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "El monto debe ser un número válido.");
+            return;
+        }
+
+        UUID clave = null;
+        if (!claveTexto.isEmpty()) {
+            try {
+                clave = UUID.fromString(claveTexto);
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, "La clave debe tener formato UUID válido (o déjala vacía para autogenerar).");
+                return;
+            }
+        }
+
+        try {
+            Cliente cliente;
+            Optional<Cliente> opt = clienteController.buscarClientePorCurpDb(curp);
+            if (opt.isPresent()) {
+                cliente = opt.get();
+            } else {
+                cliente = clienteController.getClienteFromApi(curp);
+            }
+
+            if (cliente == null) {
+                JOptionPane.showMessageDialog(this, "No existe un cliente con la CURP: " + curp);
+                return;
+            }
+
+            Poliza poliza = new Poliza();
+            if (clave != null) {
+                poliza.setClave(clave);
+            }
+            poliza.setTipo(tipo);
+            poliza.setMonto(monto);
+            poliza.setDescripcion(descripcion);
+            poliza.setCliente(cliente);
+
+            Poliza guardada = polizaController.registrarPoliza(poliza);
+            String msg = "Póliza registrada con éxito.";
+            if (guardada != null && guardada.getClave() != null) {
+                msg += "\nClave asignada: " + guardada.getClave();
+            }
+            JOptionPane.showMessageDialog(this, msg);
+            limpiarCampos();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al registrar póliza: " + ex.getMessage());
+        }
+    }
+
+    private void limpiarCampos() {
+        txtClave.setText("");
+        cbTipo.setSelectedIndex(0);
+        txtMonto.setText("");
+        txtDescripcion.setText("");
+        txtDirec.setText("");
+    }
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -45,6 +149,11 @@ public class altaPoliza extends javax.swing.JPanel {
         lblDirec.setText("CURP Cliente :");
 
         btnRegis1.setText("Registrar");
+        btnRegis1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegis1ActionPerformed(evt);
+            }
+        });
 
         btnRegis.setText("Cancelar");
 
@@ -127,6 +236,10 @@ public class altaPoliza extends javax.swing.JPanel {
     private void cbTipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbTipoActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_cbTipoActionPerformed
+
+    private void btnRegis1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegis1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnRegis1ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
